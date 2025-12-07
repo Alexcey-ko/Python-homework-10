@@ -1,0 +1,27 @@
+[project]
+name = "python-homework-10"
+version = "0.1.0"
+description = ""
+authors = [
+    {name = "Alexcey-ko",email = "alexceyko2@gmail.com"}
+]
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "ruff (>=0.14.6,<0.15.0)",
+    "faker (>=38.2.0,<39.0.0)",
+    "alembic (>=1.17.2,<2.0.0)",
+    "sqlalchemy (>=2.0.44,<3.0.0)",
+    "pydantic-settings (>=2.12.0,<3.0.0)",
+    "psycopg2 (>=2.9.11,<3.0.0)",
+    "prompt-toolkit (>=3.0.52,<4.0.0)",
+    "redis (>=7.1.0,<8.0.0)",
+    "pytest (>=9.0.1,<10.0.0)"
+]
+
+[tool.poetry]
+packages = [{include = "app", from = "src"}]
+
+[build-system]
+requires = ["poetry-core>=2.0.0,<3.0.0"]
+build-backend = "poetry.core.masonry.api"
