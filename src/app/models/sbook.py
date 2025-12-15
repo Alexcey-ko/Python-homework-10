@@ -5,7 +5,7 @@ from datetime import date
 from sqlalchemy import Date, ForeignKey, ForeignKeyConstraint, Integer
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db.engine import Base
+from app.database import Base
 
 
 class Sbook(Base):
@@ -16,7 +16,7 @@ class Sbook(Base):
     connid: Mapped[int] = mapped_column(Integer, primary_key=True)
     fldate: Mapped[date] = mapped_column(Date, primary_key=True)
     bookid: Mapped[int] = mapped_column(Integer, primary_key=True)
-    
+    #Вторичные поля
     customid: Mapped[int] = mapped_column(Integer, ForeignKey('scustom.id'))
     seats: Mapped[int] = mapped_column(Integer, nullable=False)
 

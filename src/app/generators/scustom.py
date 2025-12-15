@@ -2,15 +2,15 @@
 
 from faker import Faker
 
-from app.db.models import Scustom
+from app.entities.scustom import ScustomData
 
 
-def generate_scustom(n:int=5)->list[Scustom]:
+def generate_scustom(n:int=5)->list[ScustomData]:
     """Генерация списка SCUSTOM для mandt из n позиций."""
     fake = Faker('ru_RU')
-    scustom_list:list[Scustom] = []
+    scustom_list:list[ScustomData] = []
     for _ in range(n):
-        scustom_list.append(Scustom(
+        scustom_list.append(ScustomData(
             email = fake.email(),
             phone_number = fake.phone_number(),
             name = fake.name(),

@@ -3,7 +3,7 @@
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db.engine import Base
+from app.database import Base
 
 
 class Sairport(Base):
@@ -11,7 +11,7 @@ class Sairport(Base):
     __tablename__ = 'sairport'
     #Ключевые поля
     id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    #Неключевые поля
+    #Вторичные поля
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     timezone: Mapped[str] = mapped_column(String(50), nullable=False)
     country: Mapped[str] = mapped_column(String(100), nullable=False)

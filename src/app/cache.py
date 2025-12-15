@@ -8,7 +8,7 @@ import redis
 from redis.backoff import ExponentialBackoff
 from redis.retry import Retry
 
-from app.core.config import settings
+from app.config import config
 
 CACHE_DB: int = 0
 REMOTE_DB: int = 1
@@ -49,11 +49,11 @@ class Cache:
         Настраивает автоматические повторы при ошибках соединения.
         """
         connection = redis.Redis(
-            host=settings.REDIS_URL,
-            port=settings.REDIS_PORT,
+            host=config.REDIS_URL,
+            port=config.REDIS_PORT,
             db=db,
-            username=settings.REDIS_USER,
-            password=settings.REDIS_USER_PASSWORD,
+            username=config.REDIS_USER,
+            password=config.REDIS_USER_PASSWORD,
             #Повторные попытки с увеличением задержки
             retry=Retry(ExponentialBackoff(cap=10, base=1), retries=25),  
             #Повторять при этих типах ошибок

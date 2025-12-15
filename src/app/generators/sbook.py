@@ -2,14 +2,16 @@
 
 import random
 
-from app.db.models import Sbook, Scustom, Sflight
+from app.entities.sbook import SbookData
+from app.entities.scustom import ScustomData
+from app.entities.sflight import SflightData
 
 
-def generate_sbook(sflight:list[Sflight], scustom:list[Scustom], n:int=5)->list[Sbook]:
+def generate_sbook(sflight:list[SflightData], scustom:list[ScustomData], n:int=5)->list[SbookData]:
     """Генерация списка SBOOK для mandt из n позиций."""
-    sbook = []
+    sbook:list[SbookData] = []
 
-    seats_av = {} 
+    seats_av:dict[int] = {} 
     #Расчет свободных мест на рейсах
     for i, sf in enumerate(sflight):
         seats_av[i] = sf.seatsmax - sf.seatsocc
@@ -26,7 +28,7 @@ def generate_sbook(sflight:list[Sflight], scustom:list[Scustom], n:int=5)->list[
         if seats_av[sfl_av_idx] == 0:
             del seats_av[sfl_av_idx]
         #Формируем бронь
-        sbook.append(Sbook(
+        sbook.append(SbookData(
             carrid = sflight[sfl_av_idx].carrid,
             connid = sflight[sfl_av_idx].connid,
             fldate = sflight[sfl_av_idx].fldate,

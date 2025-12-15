@@ -3,7 +3,7 @@
 from sqlalchemy import Integer, String
 from sqlalchemy.orm import Mapped, mapped_column
 
-from app.db.engine import Base
+from app.database import Base
 
 
 class Scarr(Base):
@@ -11,8 +11,8 @@ class Scarr(Base):
     __tablename__ = 'scarr'
     #Ключевые поля
     carrid: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-
+    #Вторичные поля
     carrname: Mapped[str] = mapped_column(String(50), nullable=False)
-    carrcode: Mapped[int] = mapped_column(String(10), nullable=False)
+    carrcode: Mapped[str] = mapped_column(String(10), nullable=False)
     url: Mapped[str] = mapped_column(String(100), nullable=False)
 
