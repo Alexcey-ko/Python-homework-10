@@ -4,8 +4,9 @@ from sqlalchemy import func, select
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from app.cache import cache
+from app.cache import Cache
 from app.entities import SbookData, ScustomAuth, SflightData
+from app.exceptions import NotEnoughSeatsError
 from app.models import Sbook, Sflight
 from app.repositories.base import Repository
 from app.repositories.sflight import SflightRepository
@@ -13,24 +14,22 @@ from app.repositories.sflight import SflightRepository
 
 class SbookRepository(Repository):
     """SQL запросы для таблицы Sbook."""
-    def __init__(self, session: AsyncSession) -> None:
+    def __init__(self, session: AsyncSession|None, cache: Cache | None = None) -> None:
         """Инициализация объекта."""
         super().__init__(session)
-        self.sflight_repo = SflightRepository(self.session)
+        self.sflight_repo = SflightRepository(self.session, cache)
 
-    async def book_flight(self, sfl:SflightData, scust:ScustomAuth, seats:int) -> bool:
+    async def book_flight(self, sfl:SflightData, scust:ScustomAuth, seats:int) -> SbookData:
         """Бронирование мест."""
         #Проверка свободных мест
         if seats > await self.sflight_repo.get_av_seats(sfl.carrid, sfl.connid, sfl.fldate):
-            print('В рейсе недостаточно свободных мест.')
-            return
+            raise NotEnoughSeatsError()
 
         #Выборка Sflight для изменения занятых мест
         sflight_query = select(Sflight).where(
             Sflight.carrid == sfl.carrid,
             Sflight.connid == sfl.connid,
-            Sflight.fldate == sfl.fldate,
-            )
+            Sflight.fldate == sfl.fldate)
         sflight_stmt = await self.session.execute(sflight_query)
         sflight:Sflight|None = sflight_stmt.scalar_one_or_none()
         
@@ -51,7 +50,7 @@ class SbookRepository(Repository):
         cache_key = f'{sflight.carrid}:{sflight.connid}:{sflight.fldate}'
         av_seats = sflight.seatsmax - sflight.seatsocc
         #Добавление записи бронирования
-        sbook = Sbook(
+        new_sbook = Sbook(
             carrid = sflight.carrid,
             connid = sflight.connid,
             fldate = sflight.fldate,
@@ -59,17 +58,24 @@ class SbookRepository(Repository):
             bookid = max_bookid + 1,
             seats = seats
         )
-        self.session.add(sbook)
+        self.session.add(new_sbook)
 
         try:
             await self.session.commit()
-            cache.cache_set(cache_key, av_seats, 60 * 60 * 24)
-            return True
+            if self.cache:
+                self.cache.cache_set(cache_key, av_seats, 60 * 60 * 24)
+            return SbookData(
+                    carrid = new_sbook.carrid,
+                    connid = new_sbook.connid,
+                    fldate = new_sbook.fldate,
+                    bookid = new_sbook.bookid,
+                    customid = new_sbook.customid,
+                    seats = new_sbook.seats )
         except SQLAlchemyError:
             await self.session.rollback()
-            return False
+            return None
         
-    def create_sbook(self, sbook:SbookData) -> Sbook:
+    def _create_sbook(self, sbook:SbookData) -> Sbook:
         """Создание записи в таблице Sbook."""
         new_sbook = Sbook(
             carrid = sbook.carrid,
@@ -77,22 +83,35 @@ class SbookRepository(Repository):
             fldate = sbook.fldate,
             bookid = sbook.bookid,
             customid = sbook.customid,
-            seats = sbook.seats,
-        )
+            seats = sbook.seats )
         self.session.add(new_sbook)
 
         return new_sbook
 
-    def create_sbook_single(self, sbook:SbookData) -> Sbook:
+    async def create_sbook_single(self, sbook:SbookData) -> SbookData:
         """Создание одной записи в таблице Sbook."""
-        new_sbook = self.create_sbook(sbook)
+        new_sbook = self._create_sbook(sbook)
+        await self.session.flush()
 
-        return new_sbook
+        return SbookData(
+            carrid = new_sbook.carrid,
+            connid = new_sbook.connid,
+            fldate = new_sbook.fldate,
+            bookid = new_sbook.bookid,
+            customid = new_sbook.customid,
+            seats = new_sbook.seats )
     
-    def create_sbook_list(self, sbook_list: list[SbookData]) -> list[Sbook]:
+    async def create_sbook_list(self, sbook_list: list[SbookData]) -> list[SbookData]:
         """Создание одной записи в таблице Sbook."""
-        result_list = [self.create_sbook(new_sbook) for new_sbook in sbook_list]
+        result_list = [self._create_sbook(new_sbook) for new_sbook in sbook_list]
         self.session.add_all(result_list)
+        await self.session.flush()
 
-        return result_list
+        return [SbookData(
+                carrid = sbook.carrid,
+                connid = sbook.connid,
+                fldate = sbook.fldate,
+                bookid = sbook.bookid,
+                customid = sbook.customid,
+                seats = sbook.seats ) for sbook in result_list]
     

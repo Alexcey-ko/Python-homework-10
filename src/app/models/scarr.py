@@ -12,7 +12,7 @@ class Scarr(Base):
     #Ключевые поля
     carrid: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     #Вторичные поля
-    carrname: Mapped[str] = mapped_column(String(50), nullable=False)
+    carrname: Mapped[str] = mapped_column(String(100), nullable=False)
     carrcode: Mapped[str] = mapped_column(String(10), nullable=False)
     url: Mapped[str] = mapped_column(String(100), nullable=False)
 

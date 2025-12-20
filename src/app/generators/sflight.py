@@ -12,7 +12,7 @@ from app.entities.spfli import SpfliData
 
 
 def generate_planetype():
-    """Генерация типа самоела."""
+    """Генерация типа самолета."""
     letter = random.choice(string.ascii_uppercase)
     number = random.randint(100, 999)
     return f'{letter}{number}'
@@ -49,5 +49,5 @@ def generate_sflight(spfli:list[SpfliData], n:int=5)->list[SflightData]:
             planetype = generate_planetype(),
             seatsmax = smax,
             seatsocc = 0,
-        ))
+            av_seats = smax ))
     return sflight_list

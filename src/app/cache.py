@@ -38,10 +38,14 @@ class Cache:
     Позволяет автоматически подключаться, хранить кэш и работать с удалёнными данными.
     """
 
-    def __init__(self):
+    def __init__(self, host, port, username, password):
         """Инициализация настроек REDIS."""
         # Здесь будут храниться активные соединения к разным Redis DB (по номеру базы)
         self.connections: Dict[int, redis.Redis] = {}
+        self._host = host
+        self._port = port
+        self._username = username
+        self._password = password
 
     def setup_connection(self, db: int) -> redis.Redis:
         """Создаёт подключение к Redis для указанного номера базы данных.
@@ -49,17 +53,17 @@ class Cache:
         Настраивает автоматические повторы при ошибках соединения.
         """
         connection = redis.Redis(
-            host=config.REDIS_URL,
-            port=config.REDIS_PORT,
-            db=db,
-            username=config.REDIS_USER,
-            password=config.REDIS_USER_PASSWORD,
+            host = self._host or config.REDIS_URL,
+            port = self._port or config.REDIS_PORT,
+            db = db,
+            username = self._username or config.REDIS_USER,
+            password = self._password or config.REDIS_USER_PASSWORD,
             #Повторные попытки с увеличением задержки
-            retry=Retry(ExponentialBackoff(cap=10, base=1), retries=25),  
+            retry = Retry(ExponentialBackoff(cap=10, base=1), retries=25),  
             #Повторять при этих типах ошибок
-            retry_on_error=[ConnectionError, TimeoutError, ConnectionResetError], 
+            retry_on_error = [ConnectionError, TimeoutError, ConnectionResetError], 
             #Проверка "живости" соединения каждые 1 секунду
-            health_check_interval=1, 
+            health_check_interval = 1, 
         )
         return connection
 
@@ -101,4 +105,7 @@ class Cache:
         with contextlib.suppress(ConnectionError):
             self.set(key, value, period, db=CACHE_DB)
 
-cache = Cache()
+cache = Cache(  host = config.REDIS_URL,
+                port = config.REDIS_PORT,
+                username = config.REDIS_USER,
+                password = config.REDIS_USER_PASSWORD)

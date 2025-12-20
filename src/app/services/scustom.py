@@ -9,7 +9,7 @@ from app.repositories.scustom import ScustomRepository
 
 class ScustomService:
     """Класс-сервис аэропортов."""
-    def __init__(self, session: AsyncSession):
+    def __init__(self, session: AsyncSession|None):
         """Инициализация сервиса."""
         self.session = session
         self.scust_repo = ScustomRepository(self.session)
@@ -46,15 +46,12 @@ class ScustomService:
                         phone_number = phone_number, 
                         name = name )
         try:
-            scustom = self.scust_repo.create_scustom(scust_data)
-            if scustom:
-                await self.session.flush()
-                await self.session.commit()
-                return ScustomAuth(
-                        id = scustom.id,
-                        email = scustom.email,
-                        auth = phone_number == scustom.phone_number )
-            else:
-                return None
+            scustom = await self.scust_repo.create_scustom_single(scust_data)
         except UserAlreadyExistsError:
             return None
+        
+        if scustom:
+            return ScustomAuth(
+                    id = scustom.id,
+                    email = scustom.email,
+                    auth = phone_number == scustom.phone_number )

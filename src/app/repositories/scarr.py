@@ -8,7 +8,7 @@ from app.repositories.base import Repository
 class ScarrRepository(Repository):
     """SQL запросы для таблицы Scarr."""
 
-    def create_scarr(self, scarr: ScarrData) -> Scarr:
+    def _create_scarr(self, scarr: ScarrData) -> Scarr:
         """Создание записи в таблице Scarr."""
         new_scarr = Scarr(
             carrid = scarr.carrid,
@@ -20,14 +20,25 @@ class ScarrRepository(Repository):
 
         return new_scarr
     
-    def create_scarr_single(self, scarr: ScarrData) -> Scarr:
+    async def create_scarr_single(self, scarr: ScarrData) -> ScarrData:
         """Создание одной записи в таблице Scarr."""
-        new_scarr = self.create_scarr(scarr)
+        new_scarr = self._create_scarr(scarr)
+        await self.session.flush()
 
-        return new_scarr
+        return ScarrData(
+                carrid = new_scarr.carrid,
+                carrname = new_scarr.carrname,
+                carrcode = new_scarr.carrcode,
+                url = new_scarr.url )
 
-    def create_scarr_list(self, scarr_list: list[ScarrData]) -> list[Scarr]:
+    async def create_scarr_list(self, scarr_list: list[ScarrData]) -> list[ScarrData]:
         """Создание одной записи в таблице Scarr."""
-        result_list = [self.create_scarr(new_scarr) for new_scarr in scarr_list]
+        result_list = [self._create_scarr(new_scarr) for new_scarr in scarr_list]
+        await self.session.flush()
         
-        return result_list        
+        return [ScarrData(
+                carrid = scarr.carrid,
+                carrname = scarr.carrname,
+                carrcode = scarr.carrcode,
+                url = scarr.url
+            ) for scarr in result_list]      

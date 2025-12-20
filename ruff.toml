@@ -65,6 +65,7 @@ unfixable = ["B"]
 [lint.per-file-ignores]
 "__init__.py" = ["E402","D100","D104"]
 "**/{tests,docs,tools}/*" = ["E402"]
+"tests/**/*.py" = ["S101"]
 
 [format]
 # Use single quotes in `ruff format`.

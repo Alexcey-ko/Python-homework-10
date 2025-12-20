@@ -6,7 +6,11 @@ from prompt_toolkit.shortcuts.dialogs import radiolist_dialog
 
 from app.database import async_session
 from app.entities import ScustomAuth, SflightData
-from app.exceptions import UserAlreadyExistsError, UserDoesntExistsError
+from app.exceptions import (
+    NotEnoughSeatsError,
+    UserAlreadyExistsError,
+    UserDoesntExistsError,
+)
 from app.services import SairportService, SbookService, ScustomService, SflightService
 
 
@@ -47,7 +51,6 @@ class Client:
             try:
                 scust_auth = await self._scustom_service.sign_up(email, phone_number, name)
                 if scust_auth.auth:
-                    print(scust_auth)
                     print('Регистрация пройдена успешно.')
             except UserAlreadyExistsError:
                 scust_auth = None
@@ -101,7 +104,11 @@ class Client:
         
     async def _book_flight(self, sfl:SflightData, scust:ScustomAuth, seats:int) -> bool:
         """Бронирование выбранного рейса."""
-        return await self._sbook_service.book_flight(sfl, scust, seats)
+        try:
+            return await self._sbook_service.book_flight(sfl, scust, seats)
+        except NotEnoughSeatsError:
+            print('В рейсе недостаточно свободных мест.')
+            return False
     
     async def run(self):
         """Запуск приложения клиента."""
