@@ -7,11 +7,8 @@ from sqlalchemy.orm import DeclarativeBase, declarative_base, sessionmaker
 from app.config import config
 
 
-def get_db_url()->URL:
+def get_db_url(dialect:str = 'postgresql', driver:str = 'asyncpg')->URL:
     """Формирование URL для подключения к БД."""
-    dialect  = 'postgresql'
-    driver   = 'asyncpg'
-    
     return URL.create(
         f'{dialect}+{driver}',
         username = config.POSTGRES_USER,
