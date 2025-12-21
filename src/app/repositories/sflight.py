@@ -49,8 +49,7 @@ class SflightRepository(Repository):
         cache_key = f'{carrid}:{connid}:{fldate}'
         if self.cache:
             av_seats = self.cache.cache_get(cache_key)
-        if av_seats:
-            return int(av_seats)
+            return int(av_seats)            
         
         query = select(Sflight).where(
             Sflight.carrid == carrid,
