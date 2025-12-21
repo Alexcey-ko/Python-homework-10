@@ -68,15 +68,16 @@ class Client:
             text='Выберите город отправления',
             values=list(enumerate(cities)),
         ).run_async()
-        if not result:
+        if result is None:
             raise KeyboardInterrupt
         city_from = cities[result]
+        del cities[result]
         result = await radiolist_dialog(
             title='Выбор города',
             text='Выберите город назначения',
             values=list(enumerate(cities)),
         ).run_async()
-        if not result:
+        if result is None:
             raise KeyboardInterrupt
         city_to = cities[result]
 
